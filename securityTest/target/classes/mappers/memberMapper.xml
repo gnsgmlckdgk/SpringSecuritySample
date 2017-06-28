@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 이곳에 DB작업에 필요한 SQL문들을 정의한다. -->
+<!-- MyBatis 형태로 -->
+
+<!-- namespace는 이름 -->
+<mapper namespace="com.test1.mapper.MemberMapper">
+
+	<insert id="insertMember">
+		insert into members(id, pass, enabled, name, age) values(#{id}, #{pass}, 1, #{name}, #{age})
+	</insert>
+	
+	<insert id="insertAuthority">
+		insert into authority(id, authority) values(#{id}, #{auth})
+	</insert>
+	
+	<select id="getIdPass" resultType="com.test1.domain.MemberBean">
+		select id, pass from members where id = #{id}
+	</select>
+
+	<select id="getAuth" resultType="String">
+		select authority from authority where id = #{id}
+	</select>
+
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security-4.2.xsd"><!-- 여기 버전 주의!! -->
+
+	<!-- 검사 URL -->
+	<http use-expressions="true">
+
+		<intercept-url pattern="/login/loginForm.do" access="permitAll" />	<!-- 로그인 페이지 이동 컨트롤러(제한없음) -->
+		<intercept-url pattern="/" access="permitAll" />					<!-- 최초 실행시 "/" 컨트롤러 이동(제한없음) -->
+		<intercept-url pattern="/home.do" access="permitAll" />				<!-- 홈 페이지 이동 컨트롤러(제한없음) -->
+		<intercept-url pattern="/member/join" access="permitAll" />			<!-- 회원가입 페이지 이동 컨트롤러(제한없음) -->
+		<intercept-url pattern="/admin/**" access="hasRole('ADMIN')" />		<!-- 관리자 페이지들 이동 컨트롤러(관리자만) -->
+		<intercept-url pattern="/**" access="hasAnyRole('USER, ADMIN')" />	<!-- 그 외 모든 페이지(사용자, 관리자만) -->
+
+		<form-login login-page="/login/loginForm.do"
+			default-target-url="/home.do" authentication-failure-url="/login/loginForm.do?error"
+			username-parameter="id" password-parameter="password" />
+
+		<logout logout-url="/logout" logout-success-url="/home.do" />
+
+		<access-denied-handler error-page="/login/accessDenied.do" />	<!-- 권한이 아닌 페이지 오면 -->
+
+		<session-management>
+			<!-- 중복 로그인 가능 갯수 설정, 먼저 로그인한 세션이 끊어지면 원인을 알려주는 페이지 -->
+			<concurrency-control max-sessions="1"
+				expired-url="/login_duplicate" />
+		</session-management>
+
+	</http>
+<!-- jdbc-user-service -->
+	<!-- SHA256 암호화하고 비교할 수 있도록 빈에 등록 -->
+	<!-- <beans:bean id="passwordEncoder" class="org.springframework.security.authentication.encoding.ShaPasswordEncoder">
+  		<beans:constructor-arg name="strength" value="256"></beans:constructor-arg>
+	</beans:bean> -->
+	
+	<!-- provider -->
+	<!-- <authentication-manager>
+    	<authentication-provider>
+			
+			<jdbc-user-service data-source-ref="dataSource" id="userService" role-prefix="ROLE_"
+				users-by-username-query="SELECT id as username, pass as password, enabled as enabled 
+										from members where id=?"
+				authorities-by-username-query="SELECT id as username, authority as authority 
+          									from authority WHERE id=?" />
+          									
+         	폼에 입력한 비밀번호를 SHA256 암호화 후 비교
+         	<password-encoder ref="passwordEncoder"/>	
+         	
+		</authentication-provider>
+	</authentication-manager> -->
+<!-- jdbc-user-service -->
+
+	<!-- SHA 암호화 객체 빈에 등록 -->
+	<!-- <beans:bean id="passwordEncoder" class="org.springframework.security.authentication.encoding.ShaPasswordEncoder"/> -->
+	<!-- SHA 암호화 객체를 커스터마이징 했기 때문에 직접 만들걸 빈에 등록한다. -->
+	<beans:bean id="passwordEncoder" class="com.test1.security.SHAPasswordEncoder">
+		<beans:constructor-arg name="sha" value="256"></beans:constructor-arg>	<!-- 생성자 매개변수 sha변수에 256을 넣는다 -->
+	</beans:bean>
+	<!-- BCryptPasswordEncoder를 쓴다면 이걸로 한다.
+	<beans:bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/> -->
+	
+	<!-- 커스터 마이징한 provider 빈에 등록 -->
+    <beans:bean id="customAuthenticationProvider" class="com.test1.provider.CustomAuthenticationProvider" />
+     
+    <authentication-manager>
+        <authentication-provider ref="customAuthenticationProvider"  />
+    </authentication-manager>
+
+
+</beans:beans>
